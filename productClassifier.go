@@ -37,6 +37,7 @@ var classes = make([]bayesian.Class, 0)
 var classifier *bayesian.Classifier
 var databaseMap map[bayesian.Class][]Object
 
+//Train the model to understand different types of products
 func trainModel() *bayesian.Classifier {
 	if classifier != nil {
 		return classifier
@@ -104,12 +105,14 @@ func classifyDatabase() (map[bayesian.Class][]Object, error) {
 	return databaseMap, nil
 }
 
+//Classifies a single word into a product category
 func classifyWord(word string) bayesian.Class {
 	classifier := trainModel()
 	_, likely, _ := classifier.LogScores([]string{word})
 	return classes[likely]
 }
 
+//Takes the top numItems from the evaluation
 func topItems(numItems int, params Object) []string {
 	likelyClass := classifyWord(params.name)
 	arrObjects := databaseMap[likelyClass]

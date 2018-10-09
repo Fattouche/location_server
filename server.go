@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type Object struct {
@@ -17,6 +15,7 @@ type Object struct {
 	latitude   float64
 }
 
+//Handle the search request
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	url, err := url.Parse(r.URL.String())
 	if err != nil {
@@ -36,6 +35,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(serializedItems))
 }
 
+//Take raw params and return an object
 func parseParams(rawParams url.Values) (paramsObj Object, err error) {
 	if len(rawParams["searchTerm"]) > 1 || len(rawParams["lng"]) > 1 || len(rawParams["lat"]) > 1 {
 		err = errors.New("Max 1 search term")
