@@ -29,6 +29,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		errMsg := "Error when extracting search params:" + err.Error()
 		log.Println(errMsg)
 		w.Write([]byte(errMsg))
+		return
 	}
 	topItems := topItems(20, params)
 	serializedItems := strings.Join(topItems, "\n")

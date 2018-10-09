@@ -39,6 +39,7 @@ var databaseMap map[bayesian.Class][]Object
 
 //Train the model to understand different types of products
 func trainModel() *bayesian.Classifier {
+	//Essentially caching the result
 	if classifier != nil {
 		return classifier
 	}
@@ -52,6 +53,8 @@ func trainModel() *bayesian.Classifier {
 		return nil
 	}
 	modelMap := make(map[string][]string)
+	//Iterate through all files in directory, only works if they share the name with the bayesian classes.
+	//Would be replaced with DB queries in a production system.
 	for _, fileInfo := range files {
 		fileName := fileInfo.Name()
 		fullName := textDirectory + "/" + fileName
@@ -72,7 +75,7 @@ func trainModel() *bayesian.Classifier {
 	return classifier
 }
 
-//Definitely not scalable to read the entire database in, would need to do some streamed input here
+//Probably not scalable to read the entire items table in, could do some sophisticated caching.
 func classifyDatabase() (map[bayesian.Class][]Object, error) {
 	if databaseMap != nil {
 		return databaseMap, nil
@@ -83,7 +86,7 @@ func classifyDatabase() (map[bayesian.Class][]Object, error) {
 		log.Println(err)
 		return nil, err
 	}
-	//Probably okay to use a raw query here, no params
+	//Probably okay to use a raw query here instead of prepared statement, no params.
 	rows, err := db.Query("select item_name, lng, lat from items")
 	if err != nil {
 		log.Println(err)
@@ -91,6 +94,7 @@ func classifyDatabase() (map[bayesian.Class][]Object, error) {
 	}
 	var itemName string
 	var lat, lng float64
+	//Iterate through each item, classify it and store it in the map.
 	for rows.Next() {
 		err = rows.Scan(&itemName, &lat, &lng)
 		itemName = strings.ToLower(itemName)
@@ -112,7 +116,7 @@ func classifyWord(word string) bayesian.Class {
 	return classes[likely]
 }
 
-//Takes the top numItems from the evaluation
+//Returns the top numItems from the evaluation as a list of strings (item names)
 func topItems(numItems int, params Object) []string {
 	likelyClass := classifyWord(params.name)
 	arrObjects := databaseMap[likelyClass]
@@ -147,11 +151,3 @@ func topItems(numItems int, params Object) []string {
 	}
 	return topItems
 }
-
-/*
-Used for testing
-func main() {
-	classifyDatabase()
-	arr := topItems(20, Object{"canon", 50.213, -0.120})
-	fmt.Println(arr)
-}*/
